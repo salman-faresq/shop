@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery POS · Credit Lending System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f4f7f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .pos-container {
+            max-width: 1200px; width: 100%; background: #ffffff; border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 8px 16px rgba(0,40,0,0.06);
+            overflow: hidden; display: flex; flex-direction: column; border: 1px solid #e2efe2;
+        }
+        .pos-header {
+            background: #1e3f2e; padding: 18px 28px; color: white; display: flex;
+            justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+        }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-area i { font-size: 28px; color: #b5e6a8; }
+        .logo-area h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+        .logo-area span {
+            font-size: 14px; font-weight: 400; opacity: 0.8; margin-left: 6px;
+            background: #2d5a41; padding: 4px 10px; border-radius: 40px;
+        }
+        .credit-badge {
+            background: #8bc34a; color: #1e3f2e; font-weight: 700; padding: 8px 18px;
+            border-radius: 100px; font-size: 15px; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .main-panel {
+            display: flex; flex-wrap: wrap; padding: 24px; gap: 24px; background: #f9fbf8;
+        }
+        .customer-section, .transaction-section {
+            background: white; border-radius: 24px; padding: 20px 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02); border: 1px solid #e9f0e9;
+        }
+        .customer-section { flex: 1 1 320px; }
+        .transaction-section { flex: 1 1 380px; padding: 22px 20px; }
+        .section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding: 0 6px; }
+        .section-title h2 { font-size: 18px; font-weight: 600; color: #1e3f2e; }
+        .section-title i { color: #7fad7f; }
+        .search-box {
+            display: flex; align-items: center; background: #f1f6f1; border-radius: 60px;
+            padding: 8px 16px; margin-bottom: 20px; border: 1px solid #d8e8d8;
+        }
+        .search-box i { color: #7a9e7a; font-size: 15px; }
+        .search-box input {
+            border: none; background: transparent; padding: 8px 10px; width: 100%; font-size: 15px;
+            outline: none; color: #1f3a2c;
+        }
+        .search-box input::placeholder { color: #9fb89f; font-weight: 400; }
+        .customer-list { display: flex; flex-direction: column; gap: 10px; max-height: 440px; overflow-y: auto; padding-right: 4px; }
+        .customer-item {
+            display: flex; align-items: center; justify-content: space-between; background: #ffffff;
+            padding: 12px 16px; border-radius: 18px; border: 1px solid #e3eee3; transition: all 0.15s;
+            cursor: pointer; box-shadow: 0 2px 4px rgba(0,20,0,0.02);
+        }
+        .customer-item:hover { background: #f4fcf4; border-color: #b8d9b8; transform: translateY(-1px); }
+        .customer-item.active { background: #e6f3e6; border-color: #5a9e5a; box-shadow: 0 4px 8px rgba(80,130,80,0.15); }
+        .customer-info { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .avatar {
+            width: 42px; height: 42px; background: #d9efd9; border-radius: 14px; display: flex;
+            align-items: center; justify-content: center; font-weight: 700; color: #1e3f2e; font-size: 17px;
+        }
+        .cust-details h3 { font-size: 16px; font-weight: 600; color: #1c2e1c; margin-bottom: 4px; }
+        .cust-details .balance { font-size: 13px; color: #5e7a5e; display: flex; align-items: center; gap: 6px; }
+        .credit-amount {
+            font-weight: 700; font-size: 17px; color: #2c4d2c; background: #eef7ee; padding: 4px 12px;
+            border-radius: 60px; letter-spacing: -0.2px;
+        }
+        .credit-amount.negative { color: #b33a3a; background: #ffeaea; }
+        .selected-customer-card { background: #f4fbf4; padding: 18px; border-radius: 20px; margin-bottom: 22px; border-left: 5px solid #5a9e5a; }
+        .selected-customer-card .name { font-size: 20px; font-weight: 700; color: #1b3a1b; display: flex; justify-content: space-between; align-items: center; }
+        .selected-customer-card .name i { color: #5a9e5a; font-size: 20px; }
+        .selected-customer-card .current-balance { font-size: 26px; font-weight: 800; color: #1f3f1f; margin-top: 10px; }
+        .current-balance small { font-size: 14px; font-weight: 400; color: #628062; margin-left: 8px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { font-size: 14px; font-weight: 500; color: #406040; display: block; margin-bottom: 8px; }
+        .amount-input {
+            display: flex; align-items: center; background: #f5faf5; border-radius: 60px; padding: 4px 4px 4px 20px;
+            border: 1px solid #cfe2cf;
+        }
+        .amount-input span { font-weight: 600; color: #2c5e2c; font-size: 18px; }
+        .amount-input input {
+            flex: 1; padding: 14px 12px; border: none; background: transparent; font-size: 22px; font-weight: 700;
+            color: #173017; outline: none; width: 100%;
+        }
+        .amount-input input::placeholder { font-weight: 400; color: #aac2aa; font-size: 18px; }
+        .quick-actions { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+        .btn {
+            border: none; padding: 12px 22px; border-radius: 40px; font-weight: 600; font-size: 15px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.15s;
+            background: white; border: 1px solid #cde0cd; color: #2b4d2b; flex: 1;
+        }
+        .btn-primary { background: #2b5e2b; color: white; border: none; box-shadow: 0 6px 12px rgba(40,90,40,0.2); }
+        .btn-primary:hover { background: #1f4a1f; transform: scale(1.01); }
+        .btn-secondary { background: #ffffff; border: 1px solid #b8d4b8; }
+        .btn-secondary:hover { background: #edf7ed; border-color: #82b882; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .transaction-history { margin-top: 22px; border-top: 1px dashed #c4dcc4; padding-top: 18px; }
+        .transaction-history h4 { font-size: 15px; color: #3a5e3a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .history-list { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+        .history-entry {
+            display: flex; justify-content: space-between; background: #f7fbf7; padding: 8px 14px;
+            border-radius: 40px; color: #2f4a2f; border-left: 3px solid #7fb07f;
+        }
+        .history-entry .amount { font-weight: 700; }
+        .history-entry .amount.credit { color: #2b7a2b; }
+        .history-entry .amount.debit { color: #b13e3e; }
+        .history-entry .desc { color: #587a58; font-size: 13px; }
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3f2e;
+            color: white; padding: 12px 28px; border-radius: 60px; font-weight: 500;
+            box-shadow: 0 8px 20px rgba(0,30,0,0.3); z-index: 999; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+        .empty-state { text-align: center; padding: 30px 10px; color: #98b098; font-size: 15px; }
+        .empty-state i { font-size: 36px; margin-bottom: 10px; color: #c2dac2; }
+        @media (max-width: 700px) {
+            .pos-header { flex-direction: column; align-items: flex-start; }
+            .main-panel { padding: 16px; gap: 16px; }
+            .customer-section, .transaction-section { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="pos-container">
+    <div class="pos-header">
+        <div class="logo-area">
+            <i class="fas fa-store"></i>
+            <h1>GreenGrocer POS <span>credit ledger</span></h1>
+        </div>
+        <div class="credit-badge"><i class="fas fa-hand-holding-usd"></i> Lending System</div>
+    </div>
+
+    <div class="main-panel">
+        <div class="customer-section">
+            <div class="section-title">
+                <h2><i class="fas fa-users" style="margin-right: 10px;"></i>Customers</h2>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchCustomer" placeholder="Search by name...">
+            </div>
+            <div class="customer-list" id="customerList"></div>
+        </div>
+
+        <div class="transaction-section">
+            <div class="selected-customer-card" id="selectedCustomerCard">
+                <div class="name">
+                    <span id="selectedCustomerName">Select a customer</span>
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="current-balance" id="selectedCustomerBalance">₱ 0.00 <small>credit</small></div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-peso-sign" style="margin-right: 6px;"></i>Amount</label>
+                <div class="amount-input">
+                    <span>₱</span>
+                    <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01" value="">
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <button class="btn btn-primary" id="giveCreditBtn"><i class="fas fa-plus-circle"></i> Give Credit</button>
+                <button class="btn btn-secondary" id="recordPaymentBtn"><i class="fas fa-check-circle"></i> Payment</button>
+            </div>
+
+            <div class="transaction-history">
+                <h4><i class="fas fa-history"></i> Recent activity</h4>
+                <div class="history-list" id="historyList">
+                    <div class="empty-state" style="padding: 12px 0;">No recent transactions</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toastMessage"></div>
+
+<script>
+    (function(){
+        let customers = [
+            { id: 'c1', name: 'Maria Santos', balance: 245.50, history: [] },
+            { id: 'c2', name: 'Juan Dela Cruz', balance: 0.00, history: [] },
+            { id: 'c3', name: 'Liza Reyes', balance: 78.25, history: [] },
+            { id: 'c4', name: 'Robert Tan', balance: -25.00, history: [] },
+            { id: 'c5', name: 'Ana Lopez', balance: 120.00, history: [] },
+            { id: 'c6', name: 'Carlos Mendoza', balance: 0.00, history: [] },
+            { id: 'c7', name: 'Patricia Gomez', balance: 45.75, history: [] }
+        ];
+
+        customers[0].history = [
+            { type: 'credit', amount: 150.00, desc: 'Groceries', date: '10:32 AM' },
+            { type: 'payment', amount: 50.00, desc: 'Cash payment', date: 'Yesterday' }
+        ];
+        customers[2].history = [{ type: 'credit', amount: 78.25, desc: 'Rice & canned goods', date: '09:15 AM' }];
+        customers[3].history = [
+            { type: 'payment', amount: 50.00, desc: 'Partial payment', date: 'Yesterday' },
+            { type: 'credit', amount: 25.00, desc: 'Snacks', date: 'Monday' }
+        ];
+
+        let selectedCustomerId = null;
+        let searchTerm = '';
+
+        const customerListEl = document.getElementById('customerList');
+        const searchInput = document.getElementById('searchCustomer');
+        const selectedCustomerName = document.getElementById('selectedCustomerName');
+        const selectedCustomerBalance = document.getElementById('selectedCustomerBalance');
+        const amountInput = document.getElementById('amountInput');
+        const giveCreditBtn = document.getElementById('giveCreditBtn');
+        const recordPaymentBtn = document.getElementById('recordPaymentBtn');
+        const historyListEl = document.getElementById('historyList');
+        const toastMessage = document.getElementById('toastMessage');
+
+        function formatCurrency(value) { return '₱ ' + Math.abs(value).toFixed(2); }
+        function showToast(msg, isSuccess = true) {
+            toastMessage.textContent = msg;
+            toastMessage.style.background = isSuccess ? '#1e3f2e' : '#b33a3a';
+            toastMessage.classList.add('show');
+            setTimeout(() => toastMessage.classList.remove('show'), 2200);
+        }
+        function getCustomer(id) { return customers.find(c => c.id === id); }
+        function renderCustomerList() {
+            const filtered = customers.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            if (filtered.length === 0) {
+                customerListEl.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><br>No customers found</div>';
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(c => {
+                const isActive = (c.id === selectedCustomerId);
+                const balanceClass = c.balance < 0 ? 'negative' : '';
+                const displayBalance = c.balance < 0 ? `Store owes: ${formatCurrency(c.balance)}` : formatCurrency(c.balance);
+                const initials = c.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+
+                html += `
+                    <div class="customer-item ${isActive ? 'active' : ''}" data-id="${c.id}">
+                        <div class="customer-info">
+                            <div class="avatar">${initials}</div>
+                            <div class="cust-details">
+                                <h3>${c.name}</h3>
+                                <div class="balance"><i class="fas fa-circle" style="font-size: 6px; color: ${c.balance < 0 ? '#b33a3a' : '#7fad7f'};"></i> ${c.balance < 0 ? 'credit' : 'balance'}</div>
+                            </div>
+                        </div>
+                        <div class="credit-amount ${balanceClass}">${displayBalance}</div>
+                    </div>
+                `;
+            });
+            customerListEl.innerHTML = html;
+            document.querySelectorAll('.customer-item').forEach(el => {
+                el.addEventListener('click', () => selectCustomer(el.dataset.id));
+            });
+        }
+        function selectCustomer(id) {
+            selectedCustomerId = id;
+            const customer = getCustomer(id);
+            if (!customer) return;
+            selectedCustomerName.textContent = customer.name;
+            const balance = customer.balance;
+            let balanceText = formatCurrency(balance);
+            let suffix = 'credit';
+            if (balance < 0) { suffix = 'store owes'; }
+            else if (balance === 0) { balanceText = '₱ 0.00'; suffix = 'settled'; }
+            selectedCustomerBalance.innerHTML = `${balanceText} <small>${suffix}</small>`;
+            giveCreditBtn.disabled = false;
+            recordPaymentBtn.disabled = false;
+            renderCustomerList();
+            renderHistory(customer);
+        }
+        function renderHistory(customer) {
+            if (!customer || !customer.history || customer.history.length === 0) {
+                historyListEl.innerHTML = '<div class="empty-state" style="padding: 12px 0;">No recent transactions</div>';
+                return;
+            }
+            const recent = [...customer.history].reverse().slice(0, 6);
+            let html = '';
+            recent.forEach(entry => {
+                const amountClass = entry.type === 'credit' ? 'credit' : 'debit';
+                const sign = entry.type === 'credit' ? '+' : '−';
+                html += `
+                    <div class="history-entry">
+                        <span class="desc"><i class="fas ${entry.type === 'credit' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> ${entry.desc}</span>
+                        <span class="amount ${amountClass}">${sign} ${formatCurrency(entry.amount)}</span>
+                    </div>
+                `;
+            });
+            historyListEl.innerHTML = html;
+        }
+        function refreshUI() {
+            if (selectedCustomerId) {
+                const customer = getCustomer(selectedCustomerId);
+                if (customer) {
+                    selectedCustomerBalance.innerHTML = `${formatCurrency(customer.balance)} <small>${customer.balance < 0 ? 'store owes' : (customer.balance === 0 ? 'settled' : 'credit')}</small>`;
+                    renderHistory(customer);
+                }
+            }
+            renderCustomerList();
+        }
+        function handleGiveCredit() {
+            if (!selectedCustomerId) { showToast('Please select a customer first', false); return; }
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount greater than 0', false); return; }
+            const customer = getCustomer(selectedCustomerId);
+            if (!customer) return;
+            customer.balance = parseFloat((customer.balance + amount).toFixed(2));
+            customer.history.push({ type: 'credit', amount, desc: 'Credit purchase', date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+            amountInput.value = '';
+            refreshUI();
+            showToast(`Credit of ${formatCurrency(amount)} added to ${customer.name}`);
+        }
+        function handleRecordPayment() {
+            if (!selectedCustomerId) { showToast('Please select a customer first', false); return; }
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount greater than 0', false); return; }
+            const customer = getCustomer(selectedCustomerId);
+            if (!customer) return;
+            customer.balance = parseFloat((customer.balance - amount).toFixed(2));
+            customer.history.push({ type: 'payment', amount, desc: 'Cash payment', date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+            amountInput.value = '';
+            refreshUI();
+            if (customer.balance < 0) {
+                showToast(`Payment recorded. Store now owes ${formatCurrency(customer.balance)} to ${customer.name}`);
+            } else {
+                showToast(`Payment of ${formatCurrency(amount)} recorded for ${customer.name}`);
+            }
+        }
+        function init() {
+            renderCustomerList();
+            searchInput.addEventListener('input', (e) => {
+                searchTerm = e.target.value.trim().toLowerCase();
+                renderCustomerList();
+            });
+            if (customers.length > 0) selectCustomer(customers[0].id);
+            else {
+                giveCreditBtn.disabled = true;
+                recordPaymentBtn.disabled = true;
+                selectedCustomerName.textContent = 'No customers';
+                selectedCustomerBalance.innerHTML = '₱ 0.00 <small>credit</small>';
+            }
+            giveCreditBtn.addEventListener('click', handleGiveCredit);
+            recordPaymentBtn.addEventListener('click', handleRecordPayment);
+            amountInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); handleGiveCredit(); }
+            });
+        }
+        init();
+    })();
+</script>
+</body>
+</html>
