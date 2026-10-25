@@ -3,362 +3,1960 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grocery POS · Credit Lending System</title>
+    <title>Ledger &amp; Co. · Classical Credit System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* ---------- CLASSICAL RESET ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f4f7f2;
+            background: #e6ddd0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(180, 160, 130, 0.08) 0%, transparent 30%),
+                radial-gradient(circle at 90% 70%, rgba(140, 120, 90, 0.06) 0%, transparent 40%);
+            font-family: 'Lora', Georgia, 'Times New Roman', serif;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
-            padding: 16px;
+            padding: 24px 18px;
+            color: #2e2a24;
         }
-        .pos-container {
-            max-width: 1200px; width: 100%; background: #ffffff; border-radius: 32px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 8px 16px rgba(0,40,0,0.06);
-            overflow: hidden; display: flex; flex-direction: column; border: 1px solid #e2efe2;
+
+        .ledger {
+            max-width: 1460px;
+            width: 100%;
+            background: #fbf7ef;
+            border: 1px solid #b8a68b;
+            box-shadow: 0 12px 28px rgba(80, 60, 35, 0.15), 0 4px 10px rgba(60, 40, 20, 0.08);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
         }
-        .pos-header {
-            background: #1e3f2e; padding: 18px 28px; color: white; display: flex;
-            justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+
+        .ledger::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid #d6c7b2;
+            border-radius: 3px;
+            pointer-events: none;
+            z-index: 2;
         }
-        .logo-area { display: flex; align-items: center; gap: 12px; }
-        .logo-area i { font-size: 28px; color: #b5e6a8; }
-        .logo-area h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-        .logo-area span {
-            font-size: 14px; font-weight: 400; opacity: 0.8; margin-left: 6px;
-            background: #2d5a41; padding: 4px 10px; border-radius: 40px;
+
+        /* ---------- HEADER ---------- */
+        .ledger-header {
+            padding: 24px 30px 18px;
+            border-bottom: 3px double #cbb99f;
+            background: #f4ecde;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 14px;
+            position: relative;
+            z-index: 3;
         }
-        .credit-badge {
-            background: #8bc34a; color: #1e3f2e; font-weight: 700; padding: 8px 18px;
-            border-radius: 100px; font-size: 15px; display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+        .title-group {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            flex-wrap: wrap;
         }
-        .main-panel {
-            display: flex; flex-wrap: wrap; padding: 24px; gap: 24px; background: #f9fbf8;
+
+        .title-group h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 32px;
+            letter-spacing: -0.5px;
+            color: #3b2e1e;
+            text-shadow: 1px 1px 0 #e3d6c2;
+            line-height: 1.1;
         }
-        .customer-section, .transaction-section {
-            background: white; border-radius: 24px; padding: 20px 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02); border: 1px solid #e9f0e9;
+
+        .title-group .subhead {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-weight: 500;
+            font-size: 15px;
+            color: #7a6a52;
+            border-left: 2px solid #b8a68b;
+            padding-left: 16px;
+            letter-spacing: 0.5px;
         }
-        .customer-section { flex: 1 1 320px; }
-        .transaction-section { flex: 1 1 380px; padding: 22px 20px; }
-        .section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding: 0 6px; }
-        .section-title h2 { font-size: 18px; font-weight: 600; color: #1e3f2e; }
-        .section-title i { color: #7fad7f; }
-        .search-box {
-            display: flex; align-items: center; background: #f1f6f1; border-radius: 60px;
-            padding: 8px 16px; margin-bottom: 20px; border: 1px solid #d8e8d8;
+
+        .header-right {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 16px;
+            color: #6a5a44;
+            border-bottom: 1px dotted #bba98b;
+            padding-bottom: 3px;
         }
-        .search-box i { color: #7a9e7a; font-size: 15px; }
-        .search-box input {
-            border: none; background: transparent; padding: 8px 10px; width: 100%; font-size: 15px;
-            outline: none; color: #1f3a2c;
+
+        /* ---------- TAB NAV ---------- */
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            padding: 0 30px;
+            background: #f4ecde;
+            border-bottom: 1px solid #cbb99f;
+            position: relative;
+            z-index: 3;
         }
-        .search-box input::placeholder { color: #9fb89f; font-weight: 400; }
-        .customer-list { display: flex; flex-direction: column; gap: 10px; max-height: 440px; overflow-y: auto; padding-right: 4px; }
-        .customer-item {
-            display: flex; align-items: center; justify-content: space-between; background: #ffffff;
-            padding: 12px 16px; border-radius: 18px; border: 1px solid #e3eee3; transition: all 0.15s;
-            cursor: pointer; box-shadow: 0 2px 4px rgba(0,20,0,0.02);
+
+        .tab-btn {
+            padding: 12px 24px;
+            font-family: 'Playfair Display', serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: #7a6a52;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
         }
-        .customer-item:hover { background: #f4fcf4; border-color: #b8d9b8; transform: translateY(-1px); }
-        .customer-item.active { background: #e6f3e6; border-color: #5a9e5a; box-shadow: 0 4px 8px rgba(80,130,80,0.15); }
-        .customer-info { display: flex; align-items: center; gap: 12px; flex: 1; }
-        .avatar {
-            width: 42px; height: 42px; background: #d9efd9; border-radius: 14px; display: flex;
-            align-items: center; justify-content: center; font-weight: 700; color: #1e3f2e; font-size: 17px;
+
+        .tab-btn:hover {
+            color: #3e3222;
+            background: #efe5d6;
         }
-        .cust-details h3 { font-size: 16px; font-weight: 600; color: #1c2e1c; margin-bottom: 4px; }
-        .cust-details .balance { font-size: 13px; color: #5e7a5e; display: flex; align-items: center; gap: 6px; }
-        .credit-amount {
-            font-weight: 700; font-size: 17px; color: #2c4d2c; background: #eef7ee; padding: 4px 12px;
-            border-radius: 60px; letter-spacing: -0.2px;
+
+        .tab-btn.active {
+            color: #2e2a24;
+            border-bottom-color: #4a3e2c;
+            background: #fbf7ef;
         }
-        .credit-amount.negative { color: #b33a3a; background: #ffeaea; }
-        .selected-customer-card { background: #f4fbf4; padding: 18px; border-radius: 20px; margin-bottom: 22px; border-left: 5px solid #5a9e5a; }
-        .selected-customer-card .name { font-size: 20px; font-weight: 700; color: #1b3a1b; display: flex; justify-content: space-between; align-items: center; }
-        .selected-customer-card .name i { color: #5a9e5a; font-size: 20px; }
-        .selected-customer-card .current-balance { font-size: 26px; font-weight: 800; color: #1f3f1f; margin-top: 10px; }
-        .current-balance small { font-size: 14px; font-weight: 400; color: #628062; margin-left: 8px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { font-size: 14px; font-weight: 500; color: #406040; display: block; margin-bottom: 8px; }
-        .amount-input {
-            display: flex; align-items: center; background: #f5faf5; border-radius: 60px; padding: 4px 4px 4px 20px;
-            border: 1px solid #cfe2cf;
+
+        .tab-btn i {
+            font-size: 14px;
         }
-        .amount-input span { font-weight: 600; color: #2c5e2c; font-size: 18px; }
-        .amount-input input {
-            flex: 1; padding: 14px 12px; border: none; background: transparent; font-size: 22px; font-weight: 700;
-            color: #173017; outline: none; width: 100%;
+
+        /* ---------- PAGES ---------- */
+        .page {
+            display: none;
+            position: relative;
+            z-index: 3;
         }
-        .amount-input input::placeholder { font-weight: 400; color: #aac2aa; font-size: 18px; }
-        .quick-actions { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+
+        .page.active {
+            display: block;
+        }
+
+        .ledger-body {
+            display: flex;
+            flex-wrap: wrap;
+            background: #fbf7ef;
+        }
+
+        .left-page {
+            flex: 1.05;
+            min-width: 380px;
+            padding: 26px 26px 26px 30px;
+            border-right: 1px solid #dacbb6;
+        }
+
+        .right-page {
+            flex: 0.95;
+            min-width: 360px;
+            padding: 26px 30px 26px 26px;
+        }
+
+        .full-page {
+            padding: 26px 30px;
+        }
+
+        /* ---------- SECTION TITLES ---------- */
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 20px;
+            color: #3e3222;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #d8c8b2;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            letter-spacing: 0.2px;
+        }
+
+        .section-title i {
+            color: #8b7a5e;
+            font-size: 17px;
+            margin-right: 10px;
+        }
+
+        .section-title .small-btn {
+            font-family: 'Lora', serif;
+            font-size: 13px;
+            background: #e8ddcd;
+            border: 1px solid #bba98b;
+            border-radius: 40px;
+            padding: 4px 14px;
+            color: #4a3e2c;
+            cursor: pointer;
+            transition: 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .section-title .small-btn:hover {
+            background: #dacbb6;
+            border-color: #8b7a5e;
+        }
+
+        /* ---------- CUSTOMER LIST ---------- */
+        .customer-search {
+            display: flex;
+            align-items: center;
+            background: #f4ede2;
+            border: 1px solid #d1bfa7;
+            border-radius: 30px;
+            padding: 2px 16px;
+            margin-bottom: 16px;
+        }
+
+        .customer-search i {
+            color: #8b7a5e;
+            font-size: 14px;
+        }
+
+        .customer-search input {
+            border: none;
+            background: transparent;
+            padding: 10px 12px;
+            width: 100%;
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            outline: none;
+            color: #2e2a24;
+        }
+
+        .customer-search input::placeholder {
+            color: #a89880;
+            font-style: italic;
+        }
+
+        .customer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 360px;
+            overflow-y: auto;
+            padding-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        .customer-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px dotted #d6c7b2;
+            cursor: pointer;
+            transition: 0.08s;
+            border-radius: 2px;
+        }
+
+        .customer-entry:hover {
+            background: #f0e8db;
+        }
+
+        .customer-entry.active {
+            background: #e8ddcd;
+            border-bottom: 1px solid #b8a68b;
+            font-weight: 600;
+        }
+
+        .customer-entry .info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .customer-entry .info .initial {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 17px;
+            color: #7a6a52;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .customer-entry .info .name {
+            font-size: 15px;
+            font-family: 'Lora', serif;
+            font-weight: 500;
+            color: #2e2a24;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .customer-entry .balance {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 15px;
+            color: #3e3222;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .customer-entry .balance.negative {
+            color: #8b3a3a;
+            font-style: italic;
+        }
+
+        /* ---------- ITEMS ---------- */
+        .items-section {
+            margin-top: 22px;
+            border-top: 2px solid #e0d2bf;
+            padding-top: 20px;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 6px;
+            margin-bottom: 10px;
+        }
+
+        .item-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px dotted #d6c7b2;
+            font-size: 14px;
+            transition: 0.08s;
+        }
+
+        .item-entry:hover {
+            background: #f0e8db;
+        }
+
+        .item-entry .item-name {
+            font-family: 'Lora', serif;
+            color: #2e2a24;
+            flex: 1;
+        }
+
+        .item-entry .item-price {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            color: #5a4a36;
+            margin-right: 10px;
+        }
+
+        .item-entry .item-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .item-entry .item-actions button {
+            background: transparent;
+            border: none;
+            color: #7a6a52;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 3px 6px;
+            border-radius: 3px;
+        }
+
+        .item-entry .item-actions button:hover {
+            background: #d6c7b2;
+            color: #2e2a24;
+        }
+
+        /* ---------- FORMS ---------- */
+        .form-inline {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .form-inline input {
+            flex: 1;
+            min-width: 90px;
+            padding: 9px 12px;
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            border: 1px solid #cbb99f;
+            background: #fefcf8;
+            border-radius: 3px;
+            color: #2e2a24;
+            outline: none;
+        }
+
+        .form-inline input::placeholder {
+            color: #b8a68b;
+            font-style: italic;
+        }
+
+        .form-inline input:focus {
+            border-color: #8b7a5e;
+        }
+
+        .form-inline button {
+            padding: 9px 16px;
+            background: #e3d6c2;
+            border: 1px solid #b8a68b;
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            border-radius: 3px;
+            cursor: pointer;
+            color: #3e3222;
+            transition: 0.1s;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .form-inline button:hover {
+            background: #dacbb6;
+        }
+
+        /* ---------- TRANSACTION PANEL ---------- */
+        .selected-box {
+            background: #f4ecde;
+            border: 1px solid #d1bfa7;
+            padding: 16px 20px;
+            border-radius: 3px;
+            margin-bottom: 18px;
+        }
+
+        .selected-box .cust-name {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 21px;
+            color: #2e2a24;
+            border-bottom: 1px dotted #bba98b;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .selected-box .balance-line {
+            font-family: 'Playfair Display', serif;
+            font-size: 27px;
+            font-weight: 700;
+            color: #2e2a24;
+            letter-spacing: -0.5px;
+        }
+
+        .selected-box .balance-line small {
+            font-family: 'Lora', serif;
+            font-size: 13px;
+            font-weight: 400;
+            font-style: italic;
+            color: #7a6a52;
+            margin-left: 8px;
+        }
+
+        .amount-group {
+            display: flex;
+            align-items: center;
+            background: #fefcf8;
+            border: 1px solid #cbb99f;
+            border-radius: 3px;
+            padding: 0 0 0 16px;
+            margin: 14px 0 16px;
+        }
+
+        .amount-group span {
+            font-family: 'Playfair Display', serif;
+            font-size: 21px;
+            font-weight: 600;
+            color: #5a4a36;
+        }
+
+        .amount-group input {
+            flex: 1;
+            padding: 13px 12px;
+            border: none;
+            background: transparent;
+            font-family: 'Playfair Display', serif;
+            font-size: 23px;
+            font-weight: 600;
+            color: #2e2a24;
+            outline: none;
+            width: 100%;
+        }
+
+        .amount-group input::placeholder {
+            font-family: 'Lora', serif;
+            font-weight: 400;
+            color: #bba98b;
+            font-style: italic;
+            font-size: 17px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
         .btn {
-            border: none; padding: 12px 22px; border-radius: 40px; font-weight: 600; font-size: 15px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.15s;
-            background: white; border: 1px solid #cde0cd; color: #2b4d2b; flex: 1;
+            flex: 1;
+            padding: 11px 10px;
+            font-family: 'Lora', serif;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.1s;
+            border: 1px solid #b8a68b;
+            background: #f4ecde;
+            color: #3e3222;
         }
-        .btn-primary { background: #2b5e2b; color: white; border: none; box-shadow: 0 6px 12px rgba(40,90,40,0.2); }
-        .btn-primary:hover { background: #1f4a1f; transform: scale(1.01); }
-        .btn-secondary { background: #ffffff; border: 1px solid #b8d4b8; }
-        .btn-secondary:hover { background: #edf7ed; border-color: #82b882; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-        .transaction-history { margin-top: 22px; border-top: 1px dashed #c4dcc4; padding-top: 18px; }
-        .transaction-history h4 { font-size: 15px; color: #3a5e3a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-        .history-list { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+
+        .btn-primary {
+            background: #4a3e2c;
+            border-color: #3b2e1e;
+            color: #fbf7ef;
+        }
+
+        .btn-primary:hover {
+            background: #3b2e1e;
+        }
+
+        .btn-secondary:hover {
+            background: #e8ddcd;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ---------- HISTORY ---------- */
+        .history-section {
+            border-top: 2px solid #e0d2bf;
+            padding-top: 16px;
+            margin-top: 4px;
+        }
+
+        .history-section h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: #3e3222;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
         .history-entry {
-            display: flex; justify-content: space-between; background: #f7fbf7; padding: 8px 14px;
-            border-radius: 40px; color: #2f4a2f; border-left: 3px solid #7fb07f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 10px;
+            border-bottom: 1px dotted #d6c7b2;
+            font-size: 13px;
+            font-family: 'Lora', serif;
+            color: #3e3222;
         }
-        .history-entry .amount { font-weight: 700; }
-        .history-entry .amount.credit { color: #2b7a2b; }
-        .history-entry .amount.debit { color: #b13e3e; }
-        .history-entry .desc { color: #587a58; font-size: 13px; }
+
+        .history-entry .date-col {
+            font-size: 11px;
+            color: #8b7a5e;
+            font-style: italic;
+            min-width: 70px;
+        }
+
+        .history-entry .desc-col {
+            flex: 1;
+            padding: 0 8px;
+        }
+
+        .history-entry .amount {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .amount.credit {
+            color: #2e6b2e;
+        }
+
+        .amount.debit {
+            color: #8b3a3a;
+        }
+
+        .empty-note {
+            font-family: 'Lora', serif;
+            font-style: italic;
+            color: #a89880;
+            text-align: center;
+            padding: 16px 0;
+            font-size: 13px;
+        }
+
+        /* ---------- DETAILS / REPORT PAGE ---------- */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: flex-end;
+            background: #f4ecde;
+            border: 1px solid #d1bfa7;
+            padding: 16px 20px;
+            border-radius: 3px;
+            margin-bottom: 24px;
+        }
+
+        .filter-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-field label {
+            font-size: 12px;
+            font-family: 'Lora', serif;
+            font-weight: 600;
+            color: #5a4a36;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-field input,
+        .filter-field select {
+            padding: 8px 12px;
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            border: 1px solid #cbb99f;
+            background: #fefcf8;
+            border-radius: 3px;
+            color: #2e2a24;
+            outline: none;
+            min-width: 150px;
+        }
+
+        .filter-field input:focus,
+        .filter-field select:focus {
+            border-color: #8b7a5e;
+        }
+
+        .filter-bar .btn-filter {
+            padding: 9px 22px;
+            background: #4a3e2c;
+            color: #fbf7ef;
+            border: 1px solid #3b2e1e;
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-bar .btn-filter:hover {
+            background: #3b2e1e;
+        }
+
+        .filter-bar .btn-clear {
+            padding: 9px 18px;
+            background: #e8ddcd;
+            color: #3e3222;
+            border: 1px solid #b8a68b;
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .filter-bar .btn-clear:hover {
+            background: #dacbb6;
+        }
+
+        /* summary cards */
+        .summary-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            flex: 1;
+            min-width: 160px;
+            background: #f4ecde;
+            border: 1px solid #d1bfa7;
+            border-left: 4px solid #8b7a5e;
+            padding: 16px 18px;
+            border-radius: 3px;
+        }
+
+        .summary-card .label {
+            font-size: 12px;
+            font-family: 'Lora', serif;
+            color: #7a6a52;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .summary-card .value {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: #2e2a24;
+            letter-spacing: -0.5px;
+        }
+
+        .summary-card .value.green {
+            color: #2e6b2e;
+        }
+
+        .summary-card .value.red {
+            color: #8b3a3a;
+        }
+
+        .summary-card .value small {
+            font-family: 'Lora', serif;
+            font-size: 12px;
+            font-weight: 400;
+            font-style: italic;
+            color: #8b7a5e;
+        }
+
+        /* report table */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .report-table thead th {
+            text-align: left;
+            padding: 10px 12px;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 13px;
+            color: #5a4a36;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border-bottom: 2px solid #b8a68b;
+            background: #f4ecde;
+        }
+
+        .report-table tbody td {
+            padding: 10px 12px;
+            border-bottom: 1px dotted #d6c7b2;
+            color: #3e3222;
+        }
+
+        .report-table tbody tr:hover {
+            background: #f0e8db;
+        }
+
+        .report-table tbody tr.total-row td {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 15px;
+            border-top: 2px solid #b8a68b;
+            border-bottom: none;
+            background: #f4ecde;
+            color: #2e2a24;
+        }
+
+        .report-table .amount {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .report-table .amount.credit {
+            color: #2e6b2e;
+        }
+
+        .report-table .amount.debit {
+            color: #8b3a3a;
+        }
+
+        /* ---------- MODAL ---------- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(60, 50, 35, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: #fbf7ef;
+            border: 1px solid #b8a68b;
+            box-shadow: 0 20px 30px rgba(40, 30, 15, 0.3);
+            padding: 26px 28px;
+            width: 90%;
+            max-width: 420px;
+            border-radius: 4px;
+        }
+
+        .modal-box h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 21px;
+            font-weight: 600;
+            color: #2e2a24;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #dacbb6;
+            padding-bottom: 12px;
+        }
+
+        .modal-field {
+            margin-bottom: 16px;
+        }
+
+        .modal-field label {
+            display: block;
+            font-family: 'Lora', serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #5a4a36;
+            margin-bottom: 6px;
+        }
+
+        .modal-field input,
+        .modal-field select {
+            width: 100%;
+            padding: 10px 14px;
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            border: 1px solid #cbb99f;
+            background: #fefcf8;
+            border-radius: 3px;
+            color: #2e2a24;
+            outline: none;
+        }
+
+        .modal-field input:focus {
+            border-color: #8b7a5e;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 10px;
+            font-family: 'Lora', serif;
+            font-weight: 600;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid #b8a68b;
+            background: #f4ecde;
+            color: #3e3222;
+            font-size: 14px;
+        }
+
+        .modal-actions .save-btn {
+            background: #4a3e2c;
+            color: #fbf7ef;
+            border-color: #3b2e1e;
+        }
+
+        .modal-actions .save-btn:hover {
+            background: #3b2e1e;
+        }
+
+        /* ---------- TOAST ---------- */
         .toast {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3f2e;
-            color: white; padding: 12px 28px; border-radius: 60px; font-weight: 500;
-            box-shadow: 0 8px 20px rgba(0,30,0,0.3); z-index: 999; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #3b2e1e;
+            color: #fbf7ef;
+            padding: 12px 28px;
+            border-radius: 2px;
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            box-shadow: 0 8px 20px rgba(40, 30, 15, 0.3);
+            z-index: 1100;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            border: 1px solid #b8a68b;
         }
-        .toast.show { opacity: 1; }
-        .empty-state { text-align: center; padding: 30px 10px; color: #98b098; font-size: 15px; }
-        .empty-state i { font-size: 36px; margin-bottom: 10px; color: #c2dac2; }
-        @media (max-width: 700px) {
-            .pos-header { flex-direction: column; align-items: flex-start; }
-            .main-panel { padding: 16px; gap: 16px; }
-            .customer-section, .transaction-section { padding: 16px; }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* ---------- SCROLLBARS ---------- */
+        .customer-list::-webkit-scrollbar,
+        .item-list::-webkit-scrollbar,
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .customer-list::-webkit-scrollbar-track,
+        .item-list::-webkit-scrollbar-track,
+        .history-list::-webkit-scrollbar-track {
+            background: #f0e8db;
+            border-radius: 10px;
+        }
+
+        .customer-list::-webkit-scrollbar-thumb,
+        .item-list::-webkit-scrollbar-thumb,
+        .history-list::-webkit-scrollbar-thumb {
+            background: #cbb99f;
+            border-radius: 10px;
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 900px) {
+            .ledger-body {
+                flex-direction: column;
+            }
+            .left-page, .right-page {
+                min-width: auto;
+                padding: 22px;
+            }
+            .left-page {
+                border-right: none;
+                border-bottom: 2px solid #dacbb6;
+            }
+            .ledger-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .tab-nav {
+                padding: 0 16px;
+                overflow-x: auto;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+            .form-inline {
+                flex-direction: column;
+            }
+            .form-inline input {
+                min-width: 100%;
+            }
+            .summary-row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-<div class="pos-container">
-    <div class="pos-header">
-        <div class="logo-area">
-            <i class="fas fa-store"></i>
-            <h1>GreenGrocer POS <span>credit ledger</span></h1>
+
+<div class="ledger">
+    <!-- HEADER -->
+    <div class="ledger-header">
+        <div class="title-group">
+            <h1>Ledger &amp; Co.</h1>
+            <div class="subhead">Credit &amp; Inventory · classical system</div>
         </div>
-        <div class="credit-badge"><i class="fas fa-hand-holding-usd"></i> Lending System</div>
+        <div class="header-right">
+            <i class="fas fa-feather-alt"></i> est. 2025
+        </div>
     </div>
 
-    <div class="main-panel">
-        <div class="customer-section">
-            <div class="section-title">
-                <h2><i class="fas fa-users" style="margin-right: 10px;"></i>Customers</h2>
-                <i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchCustomer" placeholder="Search by name...">
-            </div>
-            <div class="customer-list" id="customerList"></div>
-        </div>
+    <!-- TAB NAV -->
+    <div class="tab-nav">
+        <button class="tab-btn active" data-tab="pos"><i class="fas fa-book-open"></i> Ledger</button>
+        <button class="tab-btn" data-tab="details"><i class="fas fa-file-invoice"></i> Customer Details</button>
+        <button class="tab-btn" data-tab="reports"><i class="fas fa-chart-bar"></i> Reports</button>
+    </div>
 
-        <div class="transaction-section">
-            <div class="selected-customer-card" id="selectedCustomerCard">
-                <div class="name">
-                    <span id="selectedCustomerName">Select a customer</span>
-                    <i class="fas fa-user-circle"></i>
+    <!-- ============================================================ -->
+    <!-- PAGE 1: POS / LEDGER                                         -->
+    <!-- ============================================================ -->
+    <div class="page active" id="page-pos">
+        <div class="ledger-body">
+            <!-- LEFT: customers + items -->
+            <div class="left-page">
+                <div class="section-title">
+                    <span><i class="fas fa-users"></i> Customers</span>
+                    <button class="small-btn" id="addCustomerBtn"><i class="fas fa-plus-circle"></i> Add</button>
                 </div>
-                <div class="current-balance" id="selectedCustomerBalance">₱ 0.00 <small>credit</small></div>
+
+                <div class="customer-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchCustomer" placeholder="Search ledger...">
+                </div>
+
+                <div class="customer-list" id="customerList"></div>
+
+                <div class="items-section">
+                    <div class="section-title">
+                        <span><i class="fas fa-boxes"></i> Items</span>
+                        <button class="small-btn" id="addItemBtn"><i class="fas fa-plus-circle"></i> Add</button>
+                    </div>
+
+                    <div class="item-list" id="itemList"></div>
+
+                    <div class="form-inline" id="addItemForm">
+                        <input type="text" id="newItemName" placeholder="Item name">
+                        <input type="number" id="newItemPrice" placeholder="Price" min="0.01" step="0.01" style="max-width: 110px;">
+                        <button id="saveNewItemBtn"><i class="fas fa-check"></i> Save</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label><i class="fas fa-peso-sign" style="margin-right: 6px;"></i>Amount</label>
-                <div class="amount-input">
+            <!-- RIGHT: transaction -->
+            <div class="right-page">
+                <div class="selected-box" id="selectedBox">
+                    <div class="cust-name">
+                        <span id="selectedCustomerName">Select a customer</span>
+                        <i class="fas fa-user-circle" style="color: #8b7a5e;"></i>
+                    </div>
+                    <div class="balance-line" id="selectedCustomerBalance">₱ 0.00 <small>credit</small></div>
+                </div>
+
+                <div class="amount-group">
                     <span>₱</span>
-                    <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01" value="">
+                    <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01">
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="giveCreditBtn"><i class="fas fa-plus-circle"></i> Give Credit</button>
+                    <button class="btn btn-secondary" id="recordPaymentBtn"><i class="fas fa-check-circle"></i> Payment</button>
+                </div>
+
+                <div class="history-section">
+                    <h4><i class="fas fa-history"></i> Recent entries</h4>
+                    <div class="history-list" id="historyList">
+                        <div class="empty-note">No transactions yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PAGE 2: CUSTOMER DETAILS                                     -->
+    <!-- ============================================================ -->
+    <div class="page" id="page-details">
+        <div class="full-page">
+            <div class="section-title">
+                <span><i class="fas fa-file-invoice"></i> Customer Transaction Details</span>
+                <button class="small-btn" id="backToPosBtn"><i class="fas fa-arrow-left"></i> Back to Ledger</button>
+            </div>
+
+            <!-- filter bar -->
+            <div class="filter-bar">
+                <div class="filter-field">
+                    <label>Customer</label>
+                    <select id="detailCustomerSelect">
+                        <option value="">— All customers —</option>
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label>From date</label>
+                    <input type="date" id="detailFromDate">
+                </div>
+                <div class="filter-field">
+                    <label>To date</label>
+                    <input type="date" id="detailToDate">
+                </div>
+                <button class="btn-filter" id="applyDetailFilterBtn"><i class="fas fa-filter"></i> Apply</button>
+                <button class="btn-clear" id="clearDetailFilterBtn"><i class="fas fa-times"></i> Clear</button>
+            </div>
+
+            <!-- summary cards -->
+            <div class="summary-row" id="detailSummary">
+                <div class="summary-card">
+                    <div class="label">Total Credit Given</div>
+                    <div class="value green" id="sumCredit">₱ 0.00</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Total Payments</div>
+                    <div class="value red" id="sumPayment">₱ 0.00</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Net Balance Change</div>
+                    <div class="value" id="sumNet">₱ 0.00</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Transactions</div>
+                    <div class="value" id="sumCount">0</div>
                 </div>
             </div>
 
-            <div class="quick-actions">
-                <button class="btn btn-primary" id="giveCreditBtn"><i class="fas fa-plus-circle"></i> Give Credit</button>
-                <button class="btn btn-secondary" id="recordPaymentBtn"><i class="fas fa-check-circle"></i> Payment</button>
+            <!-- transaction table -->
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th style="text-align: right;">Amount</th>
+                        <th style="text-align: right;">Balance After</th>
+                    </tr>
+                </thead>
+                <tbody id="detailTableBody">
+                    <tr><td colspan="6" style="text-align:center; padding:30px; font-style:italic; color:#a89880;">No transactions to display</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PAGE 3: REPORTS / TOTAL COSTING                              -->
+    <!-- ============================================================ -->
+    <div class="page" id="page-reports">
+        <div class="full-page">
+            <div class="section-title">
+                <span><i class="fas fa-chart-bar"></i> Reports &amp; Total Costing</span>
+                <button class="small-btn" id="backToPosBtn2"><i class="fas fa-arrow-left"></i> Back to Ledger</button>
             </div>
 
-            <div class="transaction-history">
-                <h4><i class="fas fa-history"></i> Recent activity</h4>
-                <div class="history-list" id="historyList">
-                    <div class="empty-state" style="padding: 12px 0;">No recent transactions</div>
+            <!-- filter bar -->
+            <div class="filter-bar">
+                <div class="filter-field">
+                    <label>From date</label>
+                    <input type="date" id="reportFromDate">
+                </div>
+                <div class="filter-field">
+                    <label>To date</label>
+                    <input type="date" id="reportToDate">
+                </div>
+                <button class="btn-filter" id="applyReportFilterBtn"><i class="fas fa-filter"></i> Apply</button>
+                <button class="btn-clear" id="clearReportFilterBtn"><i class="fas fa-times"></i> Clear</button>
+            </div>
+
+            <!-- summary cards -->
+            <div class="summary-row">
+                <div class="summary-card">
+                    <div class="label">Total Credit Issued</div>
+                    <div class="value green" id="repTotalCredit">₱ 0.00</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Total Collected</div>
+                    <div class="value red" id="repTotalPayment">₱ 0.00</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Outstanding Receivables</div>
+                    <div class="value" id="repOutstanding">₱ 0.00</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Active Debtors</div>
+                    <div class="value" id="repActiveDebtors">0</div>
                 </div>
             </div>
+
+            <!-- per-customer summary table -->
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th style="text-align: right;">Credit Given</th>
+                        <th style="text-align: right;">Payments</th>
+                        <th style="text-align: right;">Current Balance</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    <tr><td colspan="5" style="text-align:center; padding:30px; font-style:italic; color:#a89880;">No data available</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <h3 id="modalTitle">Edit</h3>
+        <div id="modalFields"></div>
+        <div class="modal-actions">
+            <button id="modalCancelBtn">Cancel</button>
+            <button class="save-btn" id="modalSaveBtn">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
 <div class="toast" id="toastMessage"></div>
 
 <script>
-    (function(){
-        let customers = [
-            { id: 'c1', name: 'Maria Santos', balance: 245.50, history: [] },
-            { id: 'c2', name: 'Juan Dela Cruz', balance: 0.00, history: [] },
-            { id: 'c3', name: 'Liza Reyes', balance: 78.25, history: [] },
-            { id: 'c4', name: 'Robert Tan', balance: -25.00, history: [] },
-            { id: 'c5', name: 'Ana Lopez', balance: 120.00, history: [] },
-            { id: 'c6', name: 'Carlos Mendoza', balance: 0.00, history: [] },
-            { id: 'c7', name: 'Patricia Gomez', balance: 45.75, history: [] }
+(function() {
+    // ============================================================
+    // DATA MODEL
+    // ============================================================
+    // Each customer has a running balance and a transaction ledger.
+    // Transaction: { id, type: 'credit'|'payment', amount, desc, date (ISO string), balanceAfter }
+    // ------------------------------------------------------------
+    let customers = [
+        { id: 'c1', name: 'Maria Santos',   balance: 245.50, transactions: [] },
+        { id: 'c2', name: 'Juan Dela Cruz', balance: 0.00,   transactions: [] },
+        { id: 'c3', name: 'Liza Reyes',     balance: 78.25,  transactions: [] },
+        { id: 'c4', name: 'Robert Tan',     balance: -25.00, transactions: [] },
+        { id: 'c5', name: 'Ana Lopez',      balance: 120.00, transactions: [] },
+        { id: 'c6', name: 'Carlos Mendoza', balance: 0.00,   transactions: [] },
+        { id: 'c7', name: 'Patricia Gomez', balance: 45.75,  transactions: [] }
+    ];
+
+    let items = [
+        { id: 'i1', name: 'Rice (1kg)',        price: 45.00 },
+        { id: 'i2', name: 'Canned Sardines',   price: 28.50 },
+        { id: 'i3', name: 'Cooking Oil (1L)',  price: 89.00 },
+        { id: 'i4', name: 'Sugar (1kg)',       price: 62.00 },
+        { id: 'i5', name: 'Eggs (dozen)',      price: 78.00 }
+    ];
+
+    // Prefill transactions with realistic dates so date-range filters work.
+    (function seed() {
+        const now = new Date();
+        const day = (offset) => {
+            const d = new Date(now);
+            d.setDate(d.getDate() - offset);
+            return d.toISOString();
+        };
+        customers[0].transactions = [
+            { id: 't1', type: 'credit',  amount: 150.00, desc: 'Groceries',        date: day(3),  balanceAfter: 150.00 },
+            { id: 't2', type: 'payment', amount: 50.00,  desc: 'Cash payment',     date: day(2),  balanceAfter: 100.00 },
+            { id: 't3', type: 'credit',  amount: 145.50, desc: 'Weekly supplies',  date: day(0),  balanceAfter: 245.50 }
         ];
-
-        customers[0].history = [
-            { type: 'credit', amount: 150.00, desc: 'Groceries', date: '10:32 AM' },
-            { type: 'payment', amount: 50.00, desc: 'Cash payment', date: 'Yesterday' }
+        customers[2].transactions = [
+            { id: 't4', type: 'credit', amount: 78.25, desc: 'Rice & canned goods', date: day(1), balanceAfter: 78.25 }
         ];
-        customers[2].history = [{ type: 'credit', amount: 78.25, desc: 'Rice & canned goods', date: '09:15 AM' }];
-        customers[3].history = [
-            { type: 'payment', amount: 50.00, desc: 'Partial payment', date: 'Yesterday' },
-            { type: 'credit', amount: 25.00, desc: 'Snacks', date: 'Monday' }
+        customers[3].transactions = [
+            { id: 't5', type: 'credit',  amount: 25.00, desc: 'Snacks',        date: day(5), balanceAfter: 25.00 },
+            { id: 't6', type: 'payment', amount: 50.00, desc: 'Partial payment', date: day(2), balanceAfter: -25.00 }
         ];
-
-        let selectedCustomerId = null;
-        let searchTerm = '';
-
-        const customerListEl = document.getElementById('customerList');
-        const searchInput = document.getElementById('searchCustomer');
-        const selectedCustomerName = document.getElementById('selectedCustomerName');
-        const selectedCustomerBalance = document.getElementById('selectedCustomerBalance');
-        const amountInput = document.getElementById('amountInput');
-        const giveCreditBtn = document.getElementById('giveCreditBtn');
-        const recordPaymentBtn = document.getElementById('recordPaymentBtn');
-        const historyListEl = document.getElementById('historyList');
-        const toastMessage = document.getElementById('toastMessage');
-
-        function formatCurrency(value) { return '₱ ' + Math.abs(value).toFixed(2); }
-        function showToast(msg, isSuccess = true) {
-            toastMessage.textContent = msg;
-            toastMessage.style.background = isSuccess ? '#1e3f2e' : '#b33a3a';
-            toastMessage.classList.add('show');
-            setTimeout(() => toastMessage.classList.remove('show'), 2200);
-        }
-        function getCustomer(id) { return customers.find(c => c.id === id); }
-        function renderCustomerList() {
-            const filtered = customers.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
-            if (filtered.length === 0) {
-                customerListEl.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><br>No customers found</div>';
-                return;
-            }
-
-            let html = '';
-            filtered.forEach(c => {
-                const isActive = (c.id === selectedCustomerId);
-                const balanceClass = c.balance < 0 ? 'negative' : '';
-                const displayBalance = c.balance < 0 ? `Store owes: ${formatCurrency(c.balance)}` : formatCurrency(c.balance);
-                const initials = c.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-
-                html += `
-                    <div class="customer-item ${isActive ? 'active' : ''}" data-id="${c.id}">
-                        <div class="customer-info">
-                            <div class="avatar">${initials}</div>
-                            <div class="cust-details">
-                                <h3>${c.name}</h3>
-                                <div class="balance"><i class="fas fa-circle" style="font-size: 6px; color: ${c.balance < 0 ? '#b33a3a' : '#7fad7f'};"></i> ${c.balance < 0 ? 'credit' : 'balance'}</div>
-                            </div>
-                        </div>
-                        <div class="credit-amount ${balanceClass}">${displayBalance}</div>
-                    </div>
-                `;
-            });
-            customerListEl.innerHTML = html;
-            document.querySelectorAll('.customer-item').forEach(el => {
-                el.addEventListener('click', () => selectCustomer(el.dataset.id));
-            });
-        }
-        function selectCustomer(id) {
-            selectedCustomerId = id;
-            const customer = getCustomer(id);
-            if (!customer) return;
-            selectedCustomerName.textContent = customer.name;
-            const balance = customer.balance;
-            let balanceText = formatCurrency(balance);
-            let suffix = 'credit';
-            if (balance < 0) { suffix = 'store owes'; }
-            else if (balance === 0) { balanceText = '₱ 0.00'; suffix = 'settled'; }
-            selectedCustomerBalance.innerHTML = `${balanceText} <small>${suffix}</small>`;
-            giveCreditBtn.disabled = false;
-            recordPaymentBtn.disabled = false;
-            renderCustomerList();
-            renderHistory(customer);
-        }
-        function renderHistory(customer) {
-            if (!customer || !customer.history || customer.history.length === 0) {
-                historyListEl.innerHTML = '<div class="empty-state" style="padding: 12px 0;">No recent transactions</div>';
-                return;
-            }
-            const recent = [...customer.history].reverse().slice(0, 6);
-            let html = '';
-            recent.forEach(entry => {
-                const amountClass = entry.type === 'credit' ? 'credit' : 'debit';
-                const sign = entry.type === 'credit' ? '+' : '−';
-                html += `
-                    <div class="history-entry">
-                        <span class="desc"><i class="fas ${entry.type === 'credit' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> ${entry.desc}</span>
-                        <span class="amount ${amountClass}">${sign} ${formatCurrency(entry.amount)}</span>
-                    </div>
-                `;
-            });
-            historyListEl.innerHTML = html;
-        }
-        function refreshUI() {
-            if (selectedCustomerId) {
-                const customer = getCustomer(selectedCustomerId);
-                if (customer) {
-                    selectedCustomerBalance.innerHTML = `${formatCurrency(customer.balance)} <small>${customer.balance < 0 ? 'store owes' : (customer.balance === 0 ? 'settled' : 'credit')}</small>`;
-                    renderHistory(customer);
-                }
-            }
-            renderCustomerList();
-        }
-        function handleGiveCredit() {
-            if (!selectedCustomerId) { showToast('Please select a customer first', false); return; }
-            const amount = parseFloat(amountInput.value);
-            if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount greater than 0', false); return; }
-            const customer = getCustomer(selectedCustomerId);
-            if (!customer) return;
-            customer.balance = parseFloat((customer.balance + amount).toFixed(2));
-            customer.history.push({ type: 'credit', amount, desc: 'Credit purchase', date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-            amountInput.value = '';
-            refreshUI();
-            showToast(`Credit of ${formatCurrency(amount)} added to ${customer.name}`);
-        }
-        function handleRecordPayment() {
-            if (!selectedCustomerId) { showToast('Please select a customer first', false); return; }
-            const amount = parseFloat(amountInput.value);
-            if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount greater than 0', false); return; }
-            const customer = getCustomer(selectedCustomerId);
-            if (!customer) return;
-            customer.balance = parseFloat((customer.balance - amount).toFixed(2));
-            customer.history.push({ type: 'payment', amount, desc: 'Cash payment', date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-            amountInput.value = '';
-            refreshUI();
-            if (customer.balance < 0) {
-                showToast(`Payment recorded. Store now owes ${formatCurrency(customer.balance)} to ${customer.name}`);
-            } else {
-                showToast(`Payment of ${formatCurrency(amount)} recorded for ${customer.name}`);
-            }
-        }
-        function init() {
-            renderCustomerList();
-            searchInput.addEventListener('input', (e) => {
-                searchTerm = e.target.value.trim().toLowerCase();
-                renderCustomerList();
-            });
-            if (customers.length > 0) selectCustomer(customers[0].id);
-            else {
-                giveCreditBtn.disabled = true;
-                recordPaymentBtn.disabled = true;
-                selectedCustomerName.textContent = 'No customers';
-                selectedCustomerBalance.innerHTML = '₱ 0.00 <small>credit</small>';
-            }
-            giveCreditBtn.addEventListener('click', handleGiveCredit);
-            recordPaymentBtn.addEventListener('click', handleRecordPayment);
-            amountInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); handleGiveCredit(); }
-            });
-        }
-        init();
+        customers[4].transactions = [
+            { id: 't7', type: 'credit', amount: 120.00, desc: 'Bulk order', date: day(4), balanceAfter: 120.00 }
+        ];
+        customers[6].transactions = [
+            { id: 't8', type: 'credit', amount: 45.75, desc: 'Misc items', date: day(6), balanceAfter: 45.75 }
+        ];
     })();
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    let selectedCustomerId = null;
+    let searchTerm = '';
+
+    // ============================================================
+    // DOM REFS
+    // ============================================================
+    const customerListEl       = document.getElementById('customerList');
+    const itemListEl           = document.getElementById('itemList');
+    const searchInput          = document.getElementById('searchCustomer');
+    const selectedCustomerName = document.getElementById('selectedCustomerName');
+    const selectedCustomerBalance = document.getElementById('selectedCustomerBalance');
+    const amountInput          = document.getElementById('amountInput');
+    const giveCreditBtn        = document.getElementById('giveCreditBtn');
+    const recordPaymentBtn     = document.getElementById('recordPaymentBtn');
+    const historyListEl        = document.getElementById('historyList');
+    const toastMessage         = document.getElementById('toastMessage');
+    const modalOverlay         = document.getElementById('modalOverlay');
+    const modalTitle           = document.getElementById('modalTitle');
+    const modalFields          = document.getElementById('modalFields');
+    const modalSaveBtn         = document.getElementById('modalSaveBtn');
+    const modalCancelBtn       = document.getElementById('modalCancelBtn');
+
+    // add customer / item
+    const addCustomerBtn = document.getElementById('addCustomerBtn');
+    const newItemName    = document.getElementById('newItemName');
+    const newItemPrice   = document.getElementById('newItemPrice');
+    const saveNewItemBtn = document.getElementById('saveNewItemBtn');
+
+    // details page
+    const detailCustomerSelect  = document.getElementById('detailCustomerSelect');
+    const detailFromDate        = document.getElementById('detailFromDate');
+    const detailToDate          = document.getElementById('detailToDate');
+    const applyDetailFilterBtn  = document.getElementById('applyDetailFilterBtn');
+    const clearDetailFilterBtn  = document.getElementById('clearDetailFilterBtn');
+    const detailTableBody       = document.getElementById('detailTableBody');
+    const sumCredit             = document.getElementById('sumCredit');
+    const sumPayment            = document.getElementById('sumPayment');
+    const sumNet                = document.getElementById('sumNet');
+    const sumCount              = document.getElementById('sumCount');
+
+    // reports page
+    const reportFromDate        = document.getElementById('reportFromDate');
+    const reportToDate          = document.getElementById('reportToDate');
+    const applyReportFilterBtn  = document.getElementById('applyReportFilterBtn');
+    const clearReportFilterBtn  = document.getElementById('clearReportFilterBtn');
+    const reportTableBody       = document.getElementById('reportTableBody');
+    const repTotalCredit        = document.getElementById('repTotalCredit');
+    const repTotalPayment       = document.getElementById('repTotalPayment');
+    const repOutstanding        = document.getElementById('repOutstanding');
+    const repActiveDebtors      = document.getElementById('repActiveDebtors');
+
+    // ============================================================
+    // UTILITIES
+    // ============================================================
+    function formatCurrency(v) {
+        return '₱ ' + Math.abs(v).toFixed(2);
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function todayISO() {
+        const d = new Date();
+        return d.toISOString().slice(0, 10);
+    }
+
+    function uid(prefix) {
+        return prefix + '_' + Math.random().toString(36).slice(2, 9);
+    }
+
+    function showToast(msg, ok = true) {
+        toastMessage.textContent = msg;
+        toastMessage.style.background = ok ? '#3b2e1e' : '#8b3a3a';
+        toastMessage.classList.add('show');
+        setTimeout(() => toastMessage.classList.remove('show'), 2300);
+    }
+
+    function getCustomer(id) {
+        return customers.find(c => c.id === id);
+    }
+
+    // ============================================================
+    // TAB NAVIGATION
+    // ============================================================
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + btn.dataset.tab).classList.add('active');
+
+            if (btn.dataset.tab === 'details') {
+                refreshDetailCustomerSelect();
+                renderDetails();
+            }
+            if (btn.dataset.tab === 'reports') {
+                renderReports();
+            }
+        });
+    });
+
+    document.getElementById('backToPosBtn').addEventListener('click', () => {
+        document.querySelector('.tab-btn[data-tab="pos"]').click();
+    });
+    document.getElementById('backToPosBtn2').addEventListener('click', () => {
+        document.querySelector('.tab-btn[data-tab="pos"]').click();
+    });
+
+    // ============================================================
+    // CUSTOMER LIST (POS)
+    // ============================================================
+    function renderCustomerList() {
+        const filtered = customers.filter(c =>
+            c.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        if (filtered.length === 0) {
+            customerListEl.innerHTML = `<div class="empty-note">No customers found</div>`;
+            return;
+        }
+        let html = '';
+        filtered.forEach(c => {
+            const isActive = c.id === selectedCustomerId;
+            const neg = c.balance < 0 ? 'negative' : '';
+            const displayBalance = c.balance < 0
+                ? `(store owes ${formatCurrency(c.balance)})`
+                : formatCurrency(c.balance);
+            const initials = c.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+            html += `
+                <div class="customer-entry ${isActive ? 'active' : ''}" data-id="${c.id}">
+                    <div class="info">
+                        <span class="initial">${initials}</span>
+                        <span class="name">${c.name}</span>
+                    </div>
+                    <div class="balance ${neg}">${displayBalance}</div>
+                </div>`;
+        });
+        customerListEl.innerHTML = html;
+
+        document.querySelectorAll('.customer-entry').forEach(el => {
+            el.addEventListener('click', () => selectCustomer(el.dataset.id));
+            el.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                openEditCustomerModal(el.dataset.id);
+            });
+        });
+    }
+
+    // ============================================================
+    // ITEM LIST (POS)
+    // ============================================================
+    function renderItems() {
+        if (items.length === 0) {
+            itemListEl.innerHTML = `<div class="empty-note">No items in catalog</div>`;
+            return;
+        }
+        let html = '';
+        items.forEach(it => {
+            html += `
+                <div class="item-entry">
+                    <span class="item-name">${it.name}</span>
+                    <span class="item-price">${formatCurrency(it.price)}</span>
+                    <span class="item-actions">
+                        <button class="edit-item-btn" data-id="${it.id}" title="Edit"><i class="fas fa-pen"></i></button>
+                        <button class="delete-item-btn" data-id="${it.id}" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                    </span>
+                </div>`;
+        });
+        itemListEl.innerHTML = html;
+
+        document.querySelectorAll('.edit-item-btn').forEach(b => {
+            b.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openEditItemModal(b.dataset.id);
+            });
+        });
+        document.querySelectorAll('.delete-item-btn').forEach(b => {
+            b.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteItem(b.dataset.id);
+            });
+        });
+    }
+
+    // ============================================================
+    // SELECT CUSTOMER
+    // ============================================================
+    function selectCustomer(id) {
+        selectedCustomerId = id;
+        const c = getCustomer(id);
+        if (!c) return;
+
+        selectedCustomerName.textContent = c.name;
+        let text = formatCurrency(c.balance);
+        let suffix = 'credit';
+        if (c.balance < 0) { suffix = 'store owes'; }
+        else if (c.balance === 0) { text = '₱ 0.00'; suffix = 'settled'; }
+        selectedCustomerBalance.innerHTML = `${text} <small>${suffix}</small>`;
+
+        giveCreditBtn.disabled = false;
+        recordPaymentBtn.disabled = false;
+
+        renderCustomerList();
+        renderHistory(c);
+    }
+
+    // ============================================================
+    // HISTORY (POS right panel)
+    // ============================================================
+    function renderHistory(c) {
+        if (!c || c.transactions.length === 0) {
+            historyListEl.innerHTML = `<div class="empty-note">No transactions yet</div>`;
+            return;
+        }
+        const recent = [...c.transactions].reverse().slice(0, 8);
+        let html = '';
+        recent.forEach(t => {
+            const cls = t.type === 'credit' ? 'credit' : 'debit';
+            const sign = t.type === 'credit' ? '+' : '−';
+            html += `
+                <div class="history-entry">
+                    <span class="date-col">${formatDate(t.date)}</span>
+                    <span class="desc-col">${t.desc}</span>
+                    <span class="amount ${cls}">${sign} ${formatCurrency(t.amount)}</span>
+                </div>`;
+        });
+        historyListEl.innerHTML = html;
+    }
+
+    // ============================================================
+    // TRANSACTION HANDLERS
+    // ============================================================
+    function handleGiveCredit() {
+        if (!selectedCustomerId) return showToast('Select a customer first', false);
+        const amt = parseFloat(amountInput.value);
+        if (isNaN(amt) || amt <= 0) return showToast('Enter a valid amount', false);
+
+        const c = getCustomer(selectedCustomerId);
+        c.balance = parseFloat((c.balance + amt).toFixed(2));
+        c.transactions.push({
+            id: uid('t'),
+            type: 'credit',
+            amount: amt,
+            desc: 'Credit purchase',
+            date: new Date().toISOString(),
+            balanceAfter: c.balance
+        });
+
+        amountInput.value = '';
+        refreshUI();
+        showToast(`Credit of ${formatCurrency(amt)} added to ${c.name}`);
+    }
+
+    function handleRecordPayment() {
+        if (!selectedCustomerId) return showToast('Select a customer first', false);
+        const amt = parseFloat(amountInput.value);
+        if (isNaN(amt) || amt <= 0) return showToast('Enter a valid amount', false);
+
+        const c = getCustomer(selectedCustomerId);
+        c.balance = parseFloat((c.balance - amt).toFixed(2));
+        c.transactions.push({
+            id: uid('t'),
+            type: 'payment',
+            amount: amt,
+            desc: 'Cash payment',
+            date: new Date().toISOString(),
+            balanceAfter: c.balance
+        });
+
+        amountInput.value = '';
+        refreshUI();
+
+        if (c.balance < 0) {
+            showToast(`Payment recorded. Store now owes ${formatCurrency(c.balance)} to ${c.name}`);
+        } else {
+            showToast(`Payment of ${formatCurrency(amt)} recorded for ${c.name}`);
+        }
+    }
+
+    function refreshUI() {
+        if (selectedCustomerId) {
+            const c = getCustomer(selectedCustomerId);
+            if (c) {
+                selectedCustomerBalance.innerHTML =
+                    `${formatCurrency(c.balance)} <small>${c.balance < 0 ? 'store owes' : c.balance === 0 ? 'settled' : 'credit'}</small>`;
+                renderHistory(c);
+            }
+        }
+        renderCustomerList();
+    }
+
+    giveCreditBtn.addEventListener('click', handleGiveCredit);
+    recordPaymentBtn.addEventListener('click', handleRecordPayment);
+    amountInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); handleGiveCredit(); }
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        searchTerm = e.target.value.trim().toLowerCase();
+        renderCustomerList();
+    });
+
+    // ============================================================
+    // ADD / EDIT CUSTOMER
+    // ============================================================
+    addCustomerBtn.addEventListener('click', () => openAddCustomerModal());
+
+    function openAddCustomerModal() {
+        modalTitle.textContent = 'Add Customer';
+        modalFields.innerHTML = `
+            <div class="modal-field">
+                <label>Full name</label>
+                <input type="text" id="modalCustName" placeholder="e.g. Pedro Reyes">
+            </div>
+            <div class="modal-field">
+                <label>Opening balance (₱) — optional</label>
+                <input type="number" id="modalCustBalance" placeholder="0.00" step="0.01" value="0">
+            </div>`;
+        modalOverlay.classList.add('active');
+
+        modalSaveBtn.onclick = () => {
+            const name = document.getElementById('modalCustName').value.trim();
+            const bal = parseFloat(document.getElementById('modalCustBalance').value) || 0;
+            if (!name) return showToast('Customer name is required', false);
+
+            const newCust = {
+                id: uid('c'),
+                name,
+                balance: parseFloat(bal.toFixed(2)),
+                transactions: []
+            };
+            if (bal !== 0) {
+                newCust.transactions.push({
+                    id: uid('t'),
+                    type: bal > 0 ? 'credit' : 'payment',
+                    amount: Math.abs(bal),
+                    desc: 'Opening balance',
+                    date: new Date().toISOString(),
+                    balanceAfter: newCust.balance
+                });
+            }
+            customers.push(newCust);
+            closeModal();
+            renderCustomerList();
+            showToast(`Customer "${name}" added`);
+        };
+    }
+
+    function openEditCustomerModal(id) {
+        const c = getCustomer(id);
+        if (!c) return;
+
+        modalTitle.textContent = 'Edit Customer';
+        modalFields.innerHTML = `
+            <div class="modal-field">
+                <label>Full name</label>
+                <input type="text" id="modalCustName" value="${c.name}">
+            </div>
+            <div class="modal-field">
+                <label>Adjust balance (₱) — current: ${formatCurrency(c.balance)}</label>
+                <input type="number" id="modalCustBalance" step="0.01" placeholder="Leave blank to keep">
+            </div>`;
+        modalOverlay.classList.add('active');
+
+        modalSaveBtn.onclick = () => {
+            const name = document.getElementById('modalCustName').value.trim();
+            if (!name) return showToast('Name is required', false);
+            c.name = name;
+
+            const adjust = document.getElementById('modalCustBalance').value;
+            if (adjust !== '' && !isNaN(parseFloat(adjust))) {
+                const diff = parseFloat(adjust);
+                const newBal = parseFloat((c.balance + diff).toFixed(2));
+                if (diff !== 0) {
+                    c.transactions.push({
+                        id: uid('t'),
+                        type: diff > 0 ? 'credit' : 'payment',
+                        amount: Math.abs(diff),
+                        desc: 'Manual adjustment',
+                        date: new Date().toISOString(),
+                        balanceAfter: newBal
+                    });
+                }
+                c.balance = newBal;
+            }
+            closeModal();
+            renderCustomerList();
+            if (selectedCustomerId === id) selectCustomer(id);
+            showToast(`Customer "${name}" updated`);
+        };
+    }
+
+    // ============================================================
+    // ADD / EDIT / DELETE ITEM
+    // ============================================================
+    saveNewItemBtn.addEventListener('click', () => {
+        const name = newItemName.value.trim();
+        const price = parseFloat(newItemPrice.value);
+        if (!name) return showToast('Item name required', false);
+        if (isNaN(price) || price <= 0) return showToast('Valid price required', false);
+
+        items.push({ id: uid('i'), name, price: parseFloat(price.toFixed(2)) });
+        newItemName.value = '';
+        newItemPrice.value = '';
+        renderItems();
+        showToast(`Item "${name}" added`);
+    });
+
+    function openEditItemModal(id) {
+        const it = items.find(x => x.id === id);
+        if (!it) return;
+
+        modalTitle.textContent = 'Edit Item';
+        modalFields.innerHTML = `
+            <div class="modal-field">
+                <label>Item name</label>
+                <input type="text" id="modalItemName" value="${it.name}">
+            </div>
+            <div class="modal-field">
+                <label>Price (₱)</label>
+                <input type="number" id="modalItemPrice" step="0.01" value="${it.price}">
+            </div>`;
+        modalOverlay.classList.add('active');
+
+        modalSaveBtn.onclick = () => {
+            const name = document.getElementById('modalItemName').value.trim();
+            const price = parseFloat(document.getElementById('modalItemPrice').value);
+            if (!name) return showToast('Name required', false);
+            if (isNaN(price) || price <= 0) return showToast('Valid price required', false);
+            it.name = name;
+            it.price = parseFloat(price.toFixed(2));
+            closeModal();
+            renderItems();
+            showToast(`Item "${name}" updated`);
+        };
+    }
+
+    function deleteItem(id) {
+        const it = items.find(x => x.id === id);
+        if (!it) return;
+        if (!confirm(`Delete item "${it.name}"?`)) return;
+        items = items.filter(x => x.id !== id);
+        renderItems();
+        showToast(`Item "${it.name}" deleted`);
+    }
+
+    // ============================================================
+    // MODAL HELPERS
+    // ============================================================
+    function closeModal() {
+        modalOverlay.classList.remove('active');
+        modalSaveBtn.onclick = null;
+    }
+    modalCancelBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
+
+    // ============================================================
+    // CUSTOMER DETAILS PAGE
+    // ============================================================
+    function refreshDetailCustomerSelect() {
+        const current = detailCustomerSelect.value;
+        detailCustomerSelect.innerHTML = `<option value="">— All customers —</option>`;
+        customers.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            detailCustomerSelect.appendChild(opt);
+        });
+        if (current && customers.find(c => c.id === current)) {
+            detailCustomerSelect.value = current;
+        }
+    }
+
+    // Build a flat list of transactions across selected customer(s) with date filter.
+    function getFilteredTransactions() {
+        const custId = detailCustomerSelect.value;
+        const from = detailFromDate.value ? new Date(detailFromDate.value + 'T00:00:00') : null;
+        const to   = detailToDate.value   ? new Date(detailToDate.value   + 'T23:59:59') : null;
+
+        const pool = custId
+            ? customers.filter(c => c.id === custId)
+            : customers;
+
+        const rows = [];
+        pool.forEach(c => {
+            c.transactions.forEach(t => {
+                const d = new Date(t.date);
+                if (from && d < from) return;
+                if (to && d > to) return;
+                rows.push({ customer: c, txn: t });
+            });
+        });
+
+        rows.sort((a, b) => new Date(a.txn.date) - new Date(b.txn.date));
+        return rows;
+    }
+
+    function renderDetails() {
+        const rows = getFilteredTransactions();
+
+        // summaries
+        let credit = 0, payment = 0;
+        rows.forEach(r => {
+            if (r.txn.type === 'credit') credit += r.txn.amount;
+            else payment += r.txn.amount;
+        });
+        sumCredit.textContent = formatCurrency(credit);
+        sumPayment.textContent = formatCurrency(payment);
+        const net = credit - payment;
+        sumNet.textContent = (net >= 0 ? '+' : '−') + ' ' + formatCurrency(net);
+        sumNet.className = 'value ' + (net > 0 ? 'green' : net < 0 ? 'red' : '');
+        sumCount.textContent = rows.length;
+
+        if (rows.length === 0) {
+            detailTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; font-style:italic; color:#a89880;">No transactions match your filter</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        rows.forEach(r => {
+            const c = r.customer;
+            const t = r.txn;
+            const cls = t.type === 'credit' ? 'credit' : 'debit';
+            const sign = t.type === 'credit' ? '+' : '−';
+            const typeLabel = t.type === 'credit' ? 'Credit' : 'Payment';
+            html += `
+                <tr>
+                    <td>${formatDate(t.date)}</td>
+                    <td>${c.name}</td>
+                    <td>${t.desc}</td>
+                    <td>${typeLabel}</td>
+                    <td class="amount ${cls}">${sign} ${formatCurrency(t.amount)}</td>
+                    <td class="amount">${formatCurrency(t.balanceAfter)}</td>
+                </tr>`;
+        });
+        detailTableBody.innerHTML = html;
+    }
+
+    applyDetailFilterBtn.addEventListener('click', renderDetails);
+    clearDetailFilterBtn.addEventListener('click', () => {
+        detailCustomerSelect.value = '';
+        detailFromDate.value = '';
+        detailToDate.value = '';
+        renderDetails();
+    });
+    detailCustomerSelect.addEventListener('change', renderDetails);
+    detailFromDate.addEventListener('change', renderDetails);
+    detailToDate.addEventListener('change', renderDetails);
+
+    // ============================================================
+    // REPORTS PAGE
+    // ============================================================
+    function renderReports() {
+        const from = reportFromDate.value ? new Date(reportFromDate.value + 'T00:00:00') : null;
+        const to   = reportToDate.value   ? new Date(reportToDate.value   + 'T23:59:59') : null;
+
+        // date-filtered aggregates
+        let totalCredit = 0, totalPayment = 0;
+        customers.forEach(c => {
+            c.transactions.forEach(t => {
+                const d = new Date(t.date);
+                if (from && d < from) return;
+                if (to && d > to) return;
+                if (t.type === 'credit') totalCredit += t.amount;
+                else totalPayment += t.amount;
+            });
+        });
+
+        repTotalCredit.textContent = formatCurrency(totalCredit);
+        repTotalPayment.textContent = formatCurrency(totalPayment);
+
+        // outstanding receivables = sum of positive balances (current)
+        const outstanding = customers.reduce((s, c) => s + (c.balance > 0 ? c.balance : 0), 0);
+        repOutstanding.textContent = formatCurrency(outstanding);
+
+        const debtors = customers.filter(c => c.balance > 0).length;
+        repActiveDebtors.textContent = debtors;
+
+        // per-customer rows
+        let html = '';
+        customers.forEach(c => {
+            // per-customer filtered totals
+            let cc = 0, pp = 0;
+            c.transactions.forEach(t => {
+                const d = new Date(t.date);
+                if (from && d < from) return;
+                if (to && d > to) return;
+                if (t.type === 'credit') cc += t.amount;
+                else pp += t.amount;
+            });
+
+            let status, statusClass;
+            if (c.balance > 0) { status = 'Owes shop'; statusClass = 'debit'; }
+            else if (c.balance < 0) { status = 'Shop owes'; statusClass = 'credit'; }
+            else { status = 'Settled'; statusClass = ''; }
+
+            html += `
+                <tr>
+                    <td>${c.name}</td>
+                    <td class="amount credit">${formatCurrency(cc)}</td>
+                    <td class="amount debit">${formatCurrency(pp)}</td>
+                    <td class="amount">${formatCurrency(c.balance)}</td>
+                    <td class="${statusClass}" style="font-style:italic; color:${c.balance > 0 ? '#8b3a3a' : c.balance < 0 ? '#2e6b2e' : '#8b7a5e'};">${status}</td>
+                </tr>`;
+        });
+
+        if (html === '') {
+            html = `<tr><td colspan="5" style="text-align:center; padding:30px; font-style:italic; color:#a89880;">No customers</td></tr>`;
+        } else {
+            html += `
+                <tr class="total-row">
+                    <td>Totals</td>
+                    <td class="amount credit">${formatCurrency(totalCredit)}</td>
+                    <td class="amount debit">${formatCurrency(totalPayment)}</td>
+                    <td class="amount">${formatCurrency(outstanding)}</td>
+                    <td></td>
+                </tr>`;
+        }
+        reportTableBody.innerHTML = html;
+    }
+
+    applyReportFilterBtn.addEventListener('click', renderReports);
+    clearReportFilterBtn.addEventListener('click', () => {
+        reportFromDate.value = '';
+        reportToDate.value = '';
+        renderReports();
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    function init() {
+        // default report dates: last 30 days
+        const now = new Date();
+        const past = new Date(now);
+        past.setDate(past.getDate() - 30);
+        reportFromDate.value = past.toISOString().slice(0, 10);
+        reportToDate.value = todayISO();
+
+        renderCustomerList();
+        renderItems();
+        refreshDetailCustomerSelect();
+
+        if (customers.length > 0) {
+            selectCustomer(customers[0].id);
+        } else {
+            giveCreditBtn.disabled = true;
+            recordPaymentBtn.disabled = true;
+            selectedCustomerName.textContent = 'No customers';
+            selectedCustomerBalance.innerHTML = '₱ 0.00 <small>credit</small>';
+        }
+    }
+
+    init();
+})();
 </script>
 </body>
 </html>
